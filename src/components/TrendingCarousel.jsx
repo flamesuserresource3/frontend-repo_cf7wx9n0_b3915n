@@ -1,15 +1,19 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 
-const trending = [
-  { label: "Snacks", emoji: "🍿" },
-  { label: "Dairy", emoji: "🧀" },
-  { label: "Beverages", emoji: "🥤" },
-  { label: "Bakery", emoji: "🥐" },
-  { label: "Fruits", emoji: "🍎" },
-  { label: "Vegetables", emoji: "🥦" },
-  { label: "Breakfast", emoji: "🍳" },
-  { label: "Personal Care", emoji: "🧴" },
-  { label: "Household", emoji: "🧹" },
+const tags = [
+  'Milk',
+  'Eggs',
+  'Bananas',
+  'Bread',
+  'Rice',
+  'Sugar',
+  'Detergent',
+  'Biscuits',
+  'Chips',
+  'Toothpaste',
+  'Soap',
+  'Shampoo',
 ];
 
 export default function TrendingCarousel({ onPick }) {
@@ -18,35 +22,43 @@ export default function TrendingCarousel({ onPick }) {
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
-    let raf = 0;
-    let x = 0;
-    const tick = () => {
-      x += 0.3;
-      el.scrollLeft = x;
-      if (x >= el.scrollWidth - el.clientWidth) x = 0;
-      raf = requestAnimationFrame(tick);
+    let raf;
+    const speed = 0.35; // px per frame
+    const step = () => {
+      el.scrollLeft += speed;
+      if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 1) {
+        el.scrollLeft = 0;
+      }
+      raf = requestAnimationFrame(step);
     };
-    raf = requestAnimationFrame(tick);
+    raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, []);
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="relative"
+    >
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-400/10 via-fuchsia-500/10 to-pink-500/10 blur-xl" />
       <div
         ref={scroller}
-        className="flex gap-3 overflow-x-auto scroll-smooth rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="relative flex gap-2 overflow-x-auto no-scrollbar rounded-2xl p-2 backdrop-blur-xl bg-white/5 border border-white/10"
       >
-        {trending.map((t) => (
-          <button
-            key={t.label}
-            onClick={() => onPick?.(t.label)}
-            className="shrink-0 rounded-xl bg-gradient-to-b from-white/10 to-white/5 px-4 py-2 text-sm text-white/90 ring-1 ring-white/10 transition hover:from-white/20 hover:text-white"
+        {tags.map((t, i) => (
+          <motion.button
+            key={t + i}
+            whileTap={{ scale: 0.98 }}
+            whileHover={{ y: -1 }}
+            onClick={() => onPick?.(t)}
+            className="shrink-0 rounded-full px-4 py-2 text-sm text-zinc-100 bg-zinc-900/40 border border-white/10 shadow-[0_10px_30px_-12px_rgba(59,130,246,0.35)]"
           >
-            <span className="mr-2 text-lg">{t.emoji}</span>
-            {t.label}
-          </button>
+            {t}
+          </motion.button>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }

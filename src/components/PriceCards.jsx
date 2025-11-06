@@ -1,94 +1,98 @@
-import { useMemo } from "react";
-import { ChevronDown } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 
-const stores = [
-  { key: "zepto", name: "Zepto", logo: "https://seeklogo.com/images/Z/zepto-logo-21C3E0EBA8-seeklogo.com.png" },
-  { key: "blinkit", name: "Blinkit", logo: "https://seeklogo.com/images/B/blinkit-logo-9C19F5E82B-seeklogo.com.png" },
-  { key: "instamart", name: "Swiggy Instamart", logo: "https://upload.wikimedia.org/wikipedia/commons/1/15/Swiggy_logo.svg" },
-  { key: "bigbasket", name: "BigBasket", logo: "https://upload.wikimedia.org/wikipedia/commons/9/99/Bigbasket_logo.png" },
-  { key: "flipkart", name: "Flipkart", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1b/Flipkart_logo.png" },
-  { key: "amazon", name: "Amazon Fresh", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" },
-];
+const sample = {
+  title: 'Amul Taaza Toned Milk 1L',
+  image: 'https://images.unsplash.com/photo-1550581190-9c1c48d21d6c?q=80&w=1200&auto=format&fit=crop',
+  stores: [
+    { name: 'Blinkit', price: 62, delivery: 15, gst: 0, eta: '15-20m' },
+    { name: 'Zepto', price: 61, delivery: 14, gst: 0, eta: '20-30m' },
+    { name: 'Instamart', price: 63, delivery: 10, gst: 0, eta: '25-35m' },
+    { name: 'BigBasket', price: 60, delivery: 25, gst: 0, eta: 'Same day' },
+    { name: 'Flipkart', price: 59, delivery: 30, gst: 0, eta: 'Same day' },
+    { name: 'Amazon', price: 58, delivery: 40, gst: 0, eta: 'Tomorrow' },
+  ],
+};
 
-function Card({ product, onExpand, expanded }) {
-  const best = useMemo(() => {
-    if (!product.prices || product.prices.length === 0) return null;
-    return product.prices.slice().sort((a, b) => a.total - b.total)[0];
-  }, [product]);
+export default function PriceCards({ query }) {
+  const [open, setOpen] = useState(false);
+  const data = useMemo(() => {
+    if (!query) return null;
+    return sample;
+  }, [query]);
+
+  if (!data) return null;
+
+  const totals = data.stores.map((s) => ({ ...s, total: s.price + s.delivery + (s.gst || 0) }));
+  const best = totals.reduce((a, b) => (a.total < b.total ? a : b));
 
   return (
-    <motion.div layout className="group rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl transition hover:bg-white/10">
-      <div className="flex items-center gap-3">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="h-16 w-16 rounded-xl object-contain bg-white/80"
-          loading="lazy"
-        />
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate font-semibold text-white">{product.name}</h3>
-          {best && (
-            <div className="mt-1 flex items-center gap-2 text-sm">
-              <img src={best.logo} alt="store" className="h-4" />
-              <span className="text-emerald-300 font-semibold">₹{best.total.toFixed(2)}</span>
-              <span className="text-white/50">best price</span>
-            </div>
-          )}
-        </div>
-        <button
-          onClick={() => onExpand(product.id)}
-          className="rounded-xl bg-white/10 p-2 text-white/80 transition hover:bg-white/20"
-          aria-label="Expand"
-        >
-          <ChevronDown className={`h-5 w-5 transition ${expanded ? "rotate-180" : "rotate-0"}`} />
-        </button>
-      </div>
+    <div className="space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 140, damping: 18 }}
+        className="relative rounded-3xl bg-zinc-900/50 backdrop-blur-2xl border border-white/10 shadow-[0_20px_120px_-20px_rgba(168,85,247,0.35)] overflow-hidden"
+      >
+        <div className="absolute -inset-px rounded-3xl pointer-events-none bg-gradient-to-r from-cyan-400/10 via-fuchsia-500/10 to-pink-500/10" />
 
-      <AnimatePresence initial={false}>
-        {expanded && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mt-3 space-y-2"
-          >
-            {product.prices
-              .slice()
-              .sort((a, b) => a.total - b.total)
-              .map((p) => (
-                <div key={p.store} className="flex items-center justify-between rounded-xl bg-white/5 p-2">
-                  <div className="flex items-center gap-2">
-                    <img src={p.logo} alt={p.store} className="h-4" />
-                    <span className="text-sm text-white/80">{p.store}</span>
-                  </div>
-                  <div className="text-sm text-white">
-                    ₹{p.total.toFixed(2)}
-                    <span className="ml-2 text-xs text-white/60">(base ₹{p.price.toFixed(2)} + fees ₹{p.fee.toFixed(0)} + GST ₹{p.gst.toFixed(0)})</span>
-                  </div>
+        <div className="flex gap-4 p-4">
+          <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden bg-zinc-800/60 border border-white/10">
+            <img src={data.image} alt={data.title} className="h-full w-full object-cover" loading="lazy" />
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/10 to-transparent" />
+          </div>
+          <div className="flex-1"> 
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold text-white">{data.title}</h3>
+                <p className="text-xs text-zinc-400">Best total</p>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-violet-400 to-pink-400">
+                  ₹{best.total}
                 </div>
-              ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
+                <div className="text-[11px] text-zinc-400">at {best.name} · {best.eta}</div>
+              </div>
+            </div>
 
-export default function PriceCards({ items, expandedId, setExpandedId }) {
-  const onExpand = (id) => setExpandedId(expandedId === id ? null : id);
+            <div className="mt-3 flex items-center gap-2">
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                whileHover={{ y: -1 }}
+                onClick={() => setOpen((v) => !v)}
+                className="inline-flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-medium text-white bg-gradient-to-r from-cyan-500 via-violet-500 to-pink-500 shadow-[0_10px_30px_-12px_rgba(99,102,241,0.85)]"
+              >
+                View all stores
+                <motion.span animate={{ rotate: open ? 180 : 0 }} className="inline-block">
+                  <ChevronDown className="h-4 w-4" />
+                </motion.span>
+              </motion.button>
+            </div>
+          </div>
+        </div>
 
-  if (!items || items.length === 0) {
-    return (
-      <div className="mt-8 text-center text-white/60">Search to see real prices across apps.</div>
-    );
-  }
-
-  return (
-    <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((p) => (
-        <Card key={p.id} product={p} onExpand={onExpand} expanded={expandedId === p.id} />
-      ))}
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 150, damping: 20 }}
+              className="px-4 pb-4"
+            >
+              <div className="grid grid-cols-1 divide-y divide-white/10 rounded-2xl overflow-hidden bg-zinc-900/40 border border-white/10">
+                {totals.map((s) => (
+                  <div key={s.name} className="flex items-center justify-between p-3">
+                    <div className="text-sm text-white">{s.name} <span className="text-zinc-400 text-xs">· {s.eta}</span></div>
+                    <div className="text-sm text-zinc-300">₹{s.price} + ₹{s.delivery}{s.gst ? ` + ₹${s.gst}` : ''} <span className="text-white font-semibold">= ₹{s.total}</span></div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }
